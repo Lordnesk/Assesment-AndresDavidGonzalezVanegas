@@ -1,13 +1,29 @@
 import { Module } from '@nestjs/common';
-import { RoleController } from './role/role.controller';
+import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Credentials } from './common/db/db.config';
 import { RoleModule } from './role/role.module';
-import { ApointmentService } from './apointment/apointment.service';
-import { ApointmentsController } from './apointment/apointment.controller';
-import { ApointmentModule } from './apointment/apointment.module';
+import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
+import { SeederModule } from './common/db/seeders/seeders.module';
+
 
 @Module({
-  imports: [RoleModule, ApointmentModule],
-  controllers: [RoleController, ApointmentsController],
-  providers: [ApointmentService],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal:true,
+      envFilePath:".env"
+    }),
+    TypeOrmModule.forRootAsync({
+      imports:[ConfigModule],
+      useClass:Credentials
+    }),
+    RoleModule,
+    UserModule,
+    AuthModule,
+    SeederModule
+  ],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

@@ -1,7 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { Request,Response } from "express";
-import { Observable } from "rxjs";
 import { AuthService } from "src/auth/auth.service";
 import * as jwt from 'jsonwebtoken';
 import { ManageError } from "src/errors/custom/custom.error";

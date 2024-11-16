@@ -3,8 +3,8 @@ import { User } from 'src/user/entity/user.entity';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 
-@Entity('apoitments')
-export class Apointment {
+@Entity('appointments')
+export class Appointment {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -12,7 +12,7 @@ export class Apointment {
   date: string;
 
   @Column({ type: 'time' })
-  apointmentHour: string;
+  appointmentHour: string;
 
   @Column({ type: 'enum', enum: ['confirmed', 'cancelled', 'reprogramed'], default: 'confirmed' })
   state: 'confirmed' | 'cancelled' | 'reprogramed';
@@ -20,10 +20,10 @@ export class Apointment {
   @Column({ type: 'varchar', length: 255, nullable: true })
   reason: string;
 
-  @ManyToOne(() => User, (user) => user.apointments, { eager: true })
+  @ManyToOne(() => User, (user) => user.appointments, { eager: true })
   patient: User;
 
-  @ManyToOne(() => Doctor, (doctor) => doctor.apointments , { eager: true })
+  @ManyToOne(() => Doctor, (doctor) => doctor.appointments , { eager: true })
   doctor: Doctor;
 
   @CreateDateColumn()

@@ -71,3 +71,47 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](LICENSE).
+
+
+# Sistema de Gestión de Citas para Clínica
+
+## Descripción del Proyecto
+El **Sistema de Gestión de Citas para Clínica** es una solución diseñada para resolver los problemas asociados con el manejo de citas en una clínica privada. Este sistema permite:
+
+- Evitar conflictos de horario entre citas de pacientes y médicos.
+- Eliminar citas duplicadas y errores asociados con la programación manual.
+- Facilitar el acceso al historial de citas de los pacientes.
+- Proveer una visualización clara y centralizada de la disponibilidad de los médicos.
+
+El sistema está diseñado para ser fácil de usar, flexible, y preparado para futuras expansiones.
+
+## Características Principales
+
+### 1. Prevención de conflictos de horario:
+- Verificación automática de disponibilidad antes de confirmar una cita.
+
+### 2. Gestión de usuarios:
+- Roles diferenciados para médicos, pacientes y administradores.
+
+### 3. Historial de citas:
+- Acceso rápido y seguro a los registros de citas de cada paciente.
+
+### 4. Visualización de disponibilidad:
+- Calendarios interactivos para médicos y pacientes.
+
+### 5. Reprogramación eficiente:
+- Gestión automatizada en caso de cancelaciones o cambios imprevistos.
+
+## Requisitos Técnicos
+
+- **Backend:** NestJS con TypeScript y MySQL como base de datos.
+- **Frontend:** React.js para la interfaz de usuario.
+- **Autenticación:** Sistema de inicio de sesión basado en JWT.
+- **Despliegue:** Docker para la contenedorización.
+
+## Instalación
+
+1. Clona este repositorio:
+
+   ```bash
+   git clone 

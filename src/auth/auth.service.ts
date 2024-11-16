@@ -2,13 +2,49 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as jwt from 'jsonwebtoken';
 import { ManageError } from 'src/errors/custom/custom.error';
+import { UserService } from 'src/user/user.service';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
+import * as bcrypt from 'bcryptjs';
 
 
 @Injectable()
 export class AuthService {
     constructor(
-        private jwtService:JwtService
+        private jwtService:JwtService,
+        private userService: UserService,
     ){}
+
+    async register(registerDto: RegisterDto) {
+    const { email, password, name } = registerDto;
+    const userExists = await this.userService.findByEmail(email);
+
+    if (userExists) {
+      throw new Error('User already exists');
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await this.userService.create({
+        email,
+        password: hashedPassword,
+        name,
+        roleName : ""
+    });
+
+    return this.generateToken(newUser);
+  }
+
+  private generateToken(user) {
+    const payload = { userId: user.id, email: user.email, role: user.role };
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
+    return { accessToken };
+  }
+
+  async login(loginDto: LoginDto) {
+    const { email, password } = loginDto;
+    const user = await this.userService.verifyUserByEmailAndPassword(email, password);
+    return this.creationOfToken(user);
+  }
 
     async creationOfToken(data:any){
         const acces_token=this.jwtService.sign(data,{expiresIn:'10m'});

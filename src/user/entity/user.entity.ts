@@ -1,5 +1,5 @@
 
-import { Apointment } from "src/apointment/entity/apointment.entity";
+import { Appointment } from "src/apointment/entity/apointment.entity";
 import { Role } from "src/role/entity/role.entity";
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
@@ -23,6 +23,6 @@ export class User {
     @ManyToOne(()=>Role,role =>role.user,{eager:true})
     role:Role;
 
-    @OneToMany(() => Apointment, (apointment) => apointment.patient)
-    apointments: Apointment[];
+    @OneToMany(() => Appointment, (appointment) => appointment.patient)
+    appointments: Appointment[];
 }

@@ -11,18 +11,38 @@ export class RoleService {
 
   constructor(
     @InjectRepository(Role)
-    private roleRepository:Repository<Role>
+    private readonly roleRepository: Repository<Role>
   ){}
 
   async create(createRoleDto: CreateRoleDto) {
     try{
-      const role:Role= this.roleRepository.create(createRoleDto);
-      
+      const existingRole = await this.roleRepository.findOneBy({ name: createRoleDto.name });
+      if (existingRole) {
+        throw new ManageError({
+          type: "CONFLICT",
+          message: `Role with name ${createRoleDto.name} already exists.`
+        });
+      }
+
+      const role = this.roleRepository.create(createRoleDto);
       await this.roleRepository.save(role);
 
-      return role;
-    }catch(err:any){
-      throw err;
+      return {
+        message: `Role '${role.name}' has been created successfully.`,
+        data: role, // Puedes devolver el rol creado si es necesario
+      }
+
+    }catch (err) {
+      // Manejo de errores más claro
+      if (err instanceof ManageError) {
+        throw err; // Lanzamos el error personalizado si es del tipo ManageError
+      }
+
+      // Lanzar un error genérico si es otro tipo de error
+      throw new ManageError({
+        type: "INTERNAL_SERVER_ERROR",
+        message: `An unexpected error occurred while creating the role: ${err.message || err}`,
+      });
     }
   }
 

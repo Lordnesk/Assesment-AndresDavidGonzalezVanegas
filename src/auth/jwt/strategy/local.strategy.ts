@@ -4,10 +4,11 @@ import { Strategy } from "passport-local";
 import { UserService } from "src/user/user.service";
 
 
+
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy){
     constructor(
-        private UserService:UserService
+        private UserService: UserService 
     ){
         super({
             usernameField:"email",

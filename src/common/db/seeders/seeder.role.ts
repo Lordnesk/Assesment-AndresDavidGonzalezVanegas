@@ -13,11 +13,12 @@ export class SeederRole implements Seeder{
             {name:"doctor"},
             {name:"patient"},
         ];
-        for(const x of dataRole){
-            const query:Role | null=await repoRole.findOneBy({name:x.name});
+        for(const role of dataRole){
+            const query:Role | null=await repoRole.findOneBy({name:role.name});
             if(!query){
-                const dataRole:Role=repoRole.create(x);
-                await repoRole.save(dataRole);
+                const dataRole:Role=repoRole.create(role);
+                await repoRole.save(dataRole)
+                console.log(`Role ${role.name} seeded successfully!`);
             }
         }
     }
