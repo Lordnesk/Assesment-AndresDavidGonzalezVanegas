@@ -17,6 +17,18 @@ async function bootstrap() {
   await seederRole.run(dataSource);
   await seederUser.run(dataSource);
   
+  try {
+    console.log('🌱 Running SeederRole...');
+    await seederRole.run(dataSource);
+    console.log('✅ SeederRole completed.');
+
+    console.log('🌱 Running SeederUser...');
+    await seederUser.run(dataSource);
+    console.log('✅ SeederUser completed.');
+  } catch (error) {
+    console.error('❌ Error running seeders:', error.message);
+    process.exit(1); // Salir si hay errores
+  }
 
   const PORT = 3000
   await app.listen(3000);

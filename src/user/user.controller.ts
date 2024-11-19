@@ -4,7 +4,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Auth } from 'src/common/decorators/custom/auth.decorator';
 
-@Controller('user')
+@Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -14,9 +14,14 @@ export class UserController {
   }
 
   @Get()
-  @Auth("doctor") 
+  /* @Auth("doctor")   */
   findAll() {
-    return this.userService.findAll();
+    try {
+      return this.userService.findAll();
+    } catch (error) {
+      return {message: "Not working", error: error}
+    }
+    
   }
 
   @Get(':date/:speciality/:reason')

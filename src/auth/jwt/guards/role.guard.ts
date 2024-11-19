@@ -18,7 +18,7 @@ export class RoleGuard implements CanActivate{
 
         const roles=this.reflector.get(KEY_ROLES,context.getHandler());
         const request:Request=context.switchToHttp().getRequest();
-        const dataUser:any=request["user"];
+        const dataUser:any=request["patient"];
 
         if(!roles.includes(dataUser.role)){
             throw new ManageError({

@@ -202,3 +202,4 @@ The following UML diagrams are included:
 3. If available, the appointment is created.
 4. Both the patient and the doctor are notified.
 
+ 
