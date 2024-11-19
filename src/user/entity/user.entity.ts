@@ -20,7 +20,7 @@ export class User {
     @Column()
     roleId:number;
 
-    @ManyToOne(()=>Role,role =>role.user,{eager:true})
+    @ManyToOne(()=>Role, (role) =>role.user,{eager:true})
     role:Role;
 
     @OneToMany(() => Appointment, (appointment) => appointment.patient)

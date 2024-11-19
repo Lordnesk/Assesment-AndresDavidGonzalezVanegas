@@ -10,7 +10,7 @@ interface UserDTO {
   email: string;
   password: string;
   name: string;
-  roleName: string;
+  roleId: number;
 }
 
 @Injectable()
@@ -19,13 +19,9 @@ export class SeederUser implements Seeder {
     const userRepository = dataSource.getRepository(User);
     const roleRepository = dataSource.getRepository(Role);
 
-    const roles = await roleRepository.find();
-    const doctorRole = roles.find((role) => role.name === 'doctor');
-    const patientRole = roles.find((role) => role.name === 'patient');
-
     const users: UserDTO[] = [
-      { email: 'doctor@example.com', password: 'doctorpassword', name: 'Dr. John Doe', roleName: 'doctor' },
-      { email: 'patient@example.com', password: 'patientpassword', name: 'Jane Doe', roleName: 'patient' },
+      { email: 'doctor@example.com', password: 'doctorpassword', name: 'Dr. John Doe', roleId:1 },
+      { email: 'patient@example.com', password: 'patientpassword', name: 'Jane Doe', roleId: 2 }
     ];
 
     for (const user of users) {
@@ -33,14 +29,7 @@ export class SeederUser implements Seeder {
       if (!existingUser) {
         // Encriptar la contraseña antes de crear el usuario
         const hashedPassword = await bcrypt.hash(user.password, 10);
-
-        const newUser = userRepository.create({
-          email: user.email,
-          password: hashedPassword,
-          name: user.name,
-          role: user.roleName === 'doctor' ? doctorRole : patientRole,
-        });
-
+        const newUser = userRepository.create(user);
         await userRepository.save(newUser);
         console.log(`User ${user.email} seeded successfully!`);
       }

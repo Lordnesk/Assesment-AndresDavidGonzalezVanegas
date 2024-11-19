@@ -11,129 +11,85 @@ import { ManageError } from 'src/errors/custom/custom.error';
 
 @Injectable()
 export class UserService {
-
   constructor(
     @InjectRepository(User)
-    private userRepository:Repository<User>,
-    private roleService:RoleService
-  ){}
+    private readonly userRepository: Repository<User>,
+    private readonly roleService: RoleService,
+  ) {}
 
-  async create(createUserDto: CreateUserDto) {
-    try {
-      // Buscar el rol por nombre
-      const role: Role = await this.roleService.findOneByName(createUserDto.roleName);
-      
-      // Verificar si el rol existe
-      if (!role) {
-        throw new ManageError({
-          type: 'NOT_FOUND',
-          message: `Role with name ${createUserDto.roleName} not found`,
-        });
-      }
-  
-      // Eliminar el campo roleName antes de crear el usuario
-      delete createUserDto.roleName;
-  
-      // Crear el usuario con el rol asignado
-      const dataUser = this.userRepository.create({
-        roleId: role.id, // Asociamos el rol al usuario
-        ...createUserDto,
-      });
-  
-      // Guardar el nuevo usuario
-      await this.userRepository.save(dataUser);
-  
-      // Retornar el usuario creado
-      return dataUser;
-    } catch (err: any) {
-      // Lanza el error con un mensaje detallado
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const { roleName, password, ...userData } = createUserDto;
+
+    // Buscar el rol directamente por nombre
+    const role = await this.roleService.findOneByName(roleName);
+    if (!role) {
       throw new ManageError({
-        type: 'INTERNAL_SERVER_ERROR',
-        message: `Error creating user: ${err.message}`,
+        type: 'NOT_FOUND',
+        message: `Role with name ${roleName} not found`,
       });
     }
-  }
-  
 
-  async findAll() {
-    try{
-      const users:User[] | null= await this.userRepository.find();
-      if(users.length==0){
-        throw new ManageError({
-          type:"NOT_FOUND",
-          message:"THERE ARE NOT USERS"
-        });
-      }
-      return users;
-    }catch(err:any){
-      throw ManageError.signedError(err.message);
+    // Hashear la contraseña antes de guardar
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Crear el usuario con el rol asignado y la contraseña hasheada
+    const newUser = this.userRepository.create({
+      ...userData,
+      password: hashedPassword,
+      roleId: role.id, // Aseguramos que roleId se asigne correctamente
+      role: role
+    });
+
+    // Guardar el usuario en la base de datos
+    return this.userRepository.save(newUser);
+  }
+
+  async findAll(): Promise<User[]> {
+    const users = await this.userRepository.find();
+    if (!users.length) {
+      throw new ManageError({
+        type: 'NOT_FOUND',
+        message: 'No users found',
+      });
     }
+    return users;
   }
 
-  async findByEmail(email: string) {
+  async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({ where: { email } });
   }
 
-  async findOne(id: number) {
-    try{
-      const user:User | null= await this.userRepository.findOneBy({id});
-      if(!user){
-        throw new ManageError({
-          type:"NOT_FOUND",
-          message:"THIS ID NOT EXIST"
-        });
-      }
-      return user;
-    }catch(err:any){
-      throw ManageError.signedError(err.message);
+  async findOne(id: number): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new ManageError({
+        type: 'NOT_FOUND',
+        message: `User with ID ${id} not found`,
+      });
     }
+    return user;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
-    try{
-      const {affected}=await this.userRepository.update(id,updateUserDto);
-      if(affected==0){
-        throw new ManageError({
-          type:"NOT_FOUND",
-          message:"FAILED TO UPDATED"
-        });
-      }
-      return "Perfectly updated";
-    }catch(err:any){
-      throw ManageError.signedError(err.message);
-    }
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    const user = await this.findOne(id);
+    this.userRepository.merge(user, updateUserDto);
+    return this.userRepository.save(user);
   }
 
-  async remove(id: number) {
-    try{
-      const {affected}=await this.userRepository.delete(id);
-      if(affected==0){
-        throw new ManageError({
-          type:"NOT_FOUND",
-          message:"FAILED TO DELETED"
-        });
-      }
-      return "Perfectly deleted";
-    }catch(err:any){
-      throw ManageError.signedError(err.message);
-    }
+  async remove(id: number): Promise<void> {
+    const user = await this.findOne(id);
+    await this.userRepository.remove(user);
   }
 
-
-  async verifyUserByEmailAndPassword(email:string,password:string){
-    try{
-      const findUser=await this.userRepository.findOneBy({email:email});
-      
-      if(!findUser || (!await bcrypt.compare(password,findUser.password))){
-        throw new ManageError({
-          type:"NOT_FOUND",
-          message:"THIS USER NOT EXIST"
-        });
-      }
-      return findUser;
-    }catch(err:any){
-      throw ManageError.signedError(err.message);
+  async verifyUserByEmailAndPassword(email: string, password: string): Promise<User> {
+    const user = await this.findByEmail(email);
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      throw new ManageError({
+        type: 'NOT_FOUND',
+        message: 'Invalid credentials',
+      });
     }
+    return user;
   }
-
 }
+

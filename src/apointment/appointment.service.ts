@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { Appointment } from './entity/apointment.entity';
 import { CreateAppointmentDto } from './dto/create-apointment.dto';
 import { UpdateAppointmentDto } from './dto/update-apointment.dto';
@@ -15,31 +15,34 @@ export class AppointmentService {
   ) {}
 
   async create(dto: CreateAppointmentDto): Promise<Appointment> {
-    const existingAppointment = await this.appointmentRepository.findOne({
+    const { date, hour, userId, doctorId } = dto;
+
+    // Verificar si ya existe una cita con el mismo doctor y hora
+    const conflictingAppointment = await this.appointmentRepository.findOne({
       where: {
-        date: dto.date,
-        appointmentHour: dto.hour,
-        patient: { id: dto.userId },
-        doctor: { id: dto.doctorId },
+        date,
+        appointmentHour: hour,
+        doctor: { id: doctorId },
       },
     });
 
-    if (existingAppointment){
-      alert(
-        "There's already an appointment with this doctor at this hour "
-      )
+    if (conflictingAppointment) {
+      throw new Error(
+        `The doctor already has an appointment on ${date} at ${hour}`,
+      );
     }
 
+    // Crear y guardar la nueva cita
     const newAppointment = this.appointmentRepository.create(dto);
     return this.appointmentRepository.save(newAppointment);
   }
 
   async findAll(): Promise<Appointment[]> {
-    return this.appointmentRepository.find();
+    return this.appointmentRepository.find({ relations: ['patient', 'doctor'] });
   }
 
   async findOne(id: number): Promise<Appointment> {
-    const appointment = await this.appointmentRepository.findOne({ where: { id } });
+    const appointment = await this.appointmentRepository.findOne({ where: { id }, relations: ['patient', 'doctor'] });
     if (!appointment) {
       throw new NotFoundException(`Appointment with ID ${id} not found`);
     }
@@ -48,6 +51,28 @@ export class AppointmentService {
 
   async update(id: number, dto: UpdateAppointmentDto): Promise<Appointment> {
     const appointment = await this.findOne(id);
+
+    // Validar conflicto de horario solo si se cambian `date` o `hour`
+    if (dto.date || dto.hour || dto.doctorId) {
+      const { date, hour, doctorId } = { ...appointment, ...dto };
+
+      const conflictingAppointment = await this.appointmentRepository.findOne({
+        where: {
+          date,
+          appointmentHour: hour,
+          doctor: { id: doctorId },
+          id: Not(id), // Excluir la cita actual de la validación
+        },
+      });
+
+      if (conflictingAppointment) {
+        throw new Error(
+          `The doctor already has an appointment on ${date} at ${hour}`,
+        );
+      }
+    }
+
+    // Actualizar y guardar la cita
     this.appointmentRepository.merge(appointment, dto);
     return this.appointmentRepository.save(appointment);
   }
@@ -57,4 +82,5 @@ export class AppointmentService {
     await this.appointmentRepository.remove(appointment);
   }
 }
+
 

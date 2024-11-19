@@ -16,6 +16,7 @@ export class SeederRole implements Seeder{
           for (const role of roles) {
             const exists = await repoRole.findOne({ where: { name: role.name } });
             if (!exists) {
+              const newRole = repoRole.create(role);
               await repoRole.save(role);
               console.log(`${role.name}" created.`);
             } else {
